@@ -70,8 +70,18 @@ namespace docker_quick_manager
         }
 
         private void CreateButtton_Click(object sender, EventArgs e)
+        private void FolderSelectButton_Click(object sender, EventArgs e)
         {
+            using (var folderDialog = new FolderBrowserDialog())
+        {
+                folderDialog.Description = "Select Target Directory";
+                folderDialog.UseDescriptionForTitle = true;
 
+                if (folderDialog.ShowDialog() == DialogResult.OK)
+                {
+                    TragetDirTextBox.Text = folderDialog.SelectedPath;
+                }
+            }
         }
     }
 }
