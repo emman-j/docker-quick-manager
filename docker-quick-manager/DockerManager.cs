@@ -15,10 +15,11 @@ namespace docker_quick_manager
     public class DockerManager : INotifyPropertyChanged
     {
         BindingList<DockerContainer> _containers = new BindingList<DockerContainer>();
-        List<IImageOperations> _images = new List<IImageOperations>();
+        List<string> _images = new List<string>();
         private readonly Uri _uri;
         private DockerContainer? _selectedContainer;
         private BindingSource? _containersBindingSource;
+        private BindingSource? _imagesBindingSource;
 
         public DockerClientConfiguration DockerClient { get; set; }
         public DockerContainer? SelectedContainer
@@ -41,6 +42,17 @@ namespace docker_quick_manager
                     _containersBindingSource = new BindingSource() { DataSource = _containers };
                 }
                 return _containersBindingSource;
+            }
+        }
+        public BindingSource ImagesBindingSource
+        {
+            get
+            {
+                if (_imagesBindingSource == null)
+                {
+                    _imagesBindingSource = new BindingSource() { DataSource = _images };
+                }
+                return _imagesBindingSource;
             }
         }
 
@@ -96,13 +108,18 @@ namespace docker_quick_manager
             return _containers;
         }
 
-        public async Task<List<ImagesListResponse>> GetImagesAsync()
+        public async Task<List<string>> GetImagesAsync()
         {
             using (var client = DockerClient.CreateClient())
             {
                 var images = await client.Images.ListImagesAsync(new ImagesListParameters());
-                return images.ToList();
+
+                foreach (var image in images)
+                {
+                    _images.AddRange(image.RepoTags.ToList());
+                }
             }
+            return _images;
         }
         public async Task StartContainer(string containerId)
         {
