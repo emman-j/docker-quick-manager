@@ -79,7 +79,7 @@
             // 
             // StartButton
             // 
-            StartButton.Location = new Point(407, 166);
+            StartButton.Location = new Point(407, 194);
             StartButton.Name = "StartButton";
             StartButton.Size = new Size(75, 23);
             StartButton.TabIndex = 3;
@@ -89,7 +89,7 @@
             // 
             // StopButton
             // 
-            StopButton.Location = new Point(407, 195);
+            StopButton.Location = new Point(410, 51);
             StopButton.Name = "StopButton";
             StopButton.Size = new Size(75, 23);
             StopButton.TabIndex = 4;
@@ -129,7 +129,7 @@
             // 
             // RefreshButton
             // 
-            RefreshButton.Location = new Point(407, 137);
+            RefreshButton.Location = new Point(407, 165);
             RefreshButton.Name = "RefreshButton";
             RefreshButton.Size = new Size(75, 23);
             RefreshButton.TabIndex = 6;
