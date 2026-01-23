@@ -43,24 +43,23 @@ namespace docker_quick_manager
         }
         private async void StartButton_Click(object sender, EventArgs e)
         {
-            string containerId = string.Empty;
-
             if (_dockerManager.SelectedContainer != null)
-                containerId = _dockerManager.SelectedContainer.Id;
-
-            if (string.IsNullOrEmpty(containerId))
-                throw new InvalidOperationException("No container selected.");
-
-            // Start the container first
-            await _dockerManager.StartContainer(containerId);
-
-            // Open PowerShell console and run the docker command
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = $"-Command \"docker attach {containerId}\"",
-                UseShellExecute = true
-            });
+                // Start the container
+                await _dockerManager.StartContainer(_dockerManager.SelectedContainer.Id);
+
+                // Open PowerShell console and run the docker command
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-Command \"docker attach {_dockerManager.SelectedContainer.Id}\"",
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                MessageBox.Show("Please select a container to start.", "No Container Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void dataGridView2_SelectionChanged(object sender, EventArgs e)
