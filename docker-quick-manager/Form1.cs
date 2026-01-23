@@ -126,5 +126,35 @@ namespace docker_quick_manager
                 }
             }
         }
+
+        private async void RemoveButton_Click(object sender, EventArgs e)
+        {
+            if (_dockerManager.SelectedContainer != null)
+            {
+                try
+                {
+                    // Remove the container using Docker API
+                    using (var client = _dockerManager.DockerClient.CreateClient())
+                    {
+                        await client.Containers.RemoveContainerAsync(_dockerManager.SelectedContainer.Id,
+                            new Docker.DotNet.Models.ContainerRemoveParameters()
+                            {
+                                Force = true // Force removal even if container is running
+                            });
+                    }
+
+                    // Refresh the container list after removal
+                    await _dockerManager.GetContainersAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error removing container: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a container to remove.", "No Container Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
     }
 }
