@@ -182,6 +182,7 @@
             FolderSelectButton.TabIndex = 7;
             FolderSelectButton.Text = "...";
             FolderSelectButton.UseVisualStyleBackColor = true;
+            FolderSelectButton.Click += FolderSelectButton_Click;
             // 
             // TragetDirTextBox
             // 
@@ -284,6 +285,7 @@
             RemoveButton.TabIndex = 8;
             RemoveButton.Text = "Remove";
             RemoveButton.UseVisualStyleBackColor = true;
+            RemoveButton.Click += RemoveButton_Click;
             // 
             // Setup_Form
             // 
