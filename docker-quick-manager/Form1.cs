@@ -17,8 +17,10 @@ namespace docker_quick_manager
         private async void Setup_Form_Shown(object sender, EventArgs e)
         {
             await _dockerManager.GetContainersAsync();
+            await _dockerManager.GetImagesAsync();
             dataGridView1.DataSource = _dockerManager.ContainersBindingSource;
             dataGridView2.DataSource = _dockerManager.ContainersBindingSource;
+            ImageComboBox.DataSource = _dockerManager.ImagesBindingSource;
 
             SelectedContainerTextbox.DataBindings.Add("Text", _dockerManager, nameof(DockerManager.SelectedContainerName), true, DataSourceUpdateMode.OnPropertyChanged);
             ARSelectedContainterTextBox.DataBindings.Add("Text", _dockerManager, nameof(DockerManager.SelectedContainerName), true, DataSourceUpdateMode.OnPropertyChanged);
@@ -69,11 +71,52 @@ namespace docker_quick_manager
             }
         }
 
-        private void CreateButtton_Click(object sender, EventArgs e)
+        private async void CreateButtton_Click(object sender, EventArgs e)
+        {
+            string imageName = ImageComboBox.Text;
+            string containerName = NameTextBox.Text;
+            string targetDir = TragetDirTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(imageName))
+            {
+                MessageBox.Show("Please select an image.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                MessageBox.Show("Please enter a container name.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(targetDir))
+            {
+                MessageBox.Show("Please select a target directory.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                // Run the docker command to create the container (without starting it interactively)
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-Command \"docker create -v '{targetDir}:/app' -w /app --name '{containerName}' '{imageName}' sh\"",
+                    UseShellExecute = true
+                });
+
+                await _dockerManager.GetContainersAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error creating container: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void FolderSelectButton_Click(object sender, EventArgs e)
         {
             using (var folderDialog = new FolderBrowserDialog())
-        {
+            {
                 folderDialog.Description = "Select Target Directory";
                 folderDialog.UseDescriptionForTitle = true;
 

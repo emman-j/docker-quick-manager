@@ -182,9 +182,10 @@
             FolderSelectButton.TabIndex = 7;
             FolderSelectButton.Text = "...";
             FolderSelectButton.UseVisualStyleBackColor = true;
-            // 
+            FolderSelectButton.Click += new EventHandler(FolderSelectButton_Click);
+            //
             // TragetDirTextBox
-            // 
+            //
             TragetDirTextBox.Location = new Point(81, 74);
             TragetDirTextBox.Name = "TragetDirTextBox";
             TragetDirTextBox.Size = new Size(299, 23);
