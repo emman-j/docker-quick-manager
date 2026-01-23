@@ -153,5 +153,11 @@ namespace docker_quick_manager
                 MessageBox.Show("Please select a container to remove.", "No Container Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
+        private async void RefreshButton_Click(object sender, EventArgs e)
+        {
+            await _dockerManager.GetContainersAsync();
+            await _dockerManager.GetImagesAsync();
+        }
     }
 }

@@ -34,6 +34,7 @@
             StopButton = new Button();
             dataGridView1 = new DataGridView();
             groupBox1 = new GroupBox();
+            RefreshButton = new Button();
             groupBox2 = new GroupBox();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
@@ -113,6 +114,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(RefreshButton);
             groupBox1.Controls.Add(SelectedContainerTextbox);
             groupBox1.Controls.Add(StopButton);
             groupBox1.Controls.Add(dataGridView1);
@@ -124,6 +126,16 @@
             groupBox1.TabIndex = 6;
             groupBox1.TabStop = false;
             groupBox1.Text = "Containers";
+            // 
+            // RefreshButton
+            // 
+            RefreshButton.Location = new Point(407, 137);
+            RefreshButton.Name = "RefreshButton";
+            RefreshButton.Size = new Size(75, 23);
+            RefreshButton.TabIndex = 6;
+            RefreshButton.Text = "Refresh";
+            RefreshButton.UseVisualStyleBackColor = true;
+            RefreshButton.Click += RefreshButton_Click;
             // 
             // groupBox2
             // 
@@ -335,5 +347,6 @@
         private TextBox NameTextBox;
         private Label label4;
         private Button CreateButtton;
+        private Button RefreshButton;
     }
 }
