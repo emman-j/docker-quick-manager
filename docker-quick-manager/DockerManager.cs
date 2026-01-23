@@ -15,13 +15,23 @@ namespace docker_quick_manager
     public class DockerManager : INotifyPropertyChanged
     {
         BindingList<DockerContainer> _containers = new BindingList<DockerContainer>();
-        List<IImageOperations> _images = new List<IImageOperations>();
+        List<string> _images = new List<string>();
         private readonly Uri _uri;
         private DockerContainer? _selectedContainer;
         private BindingSource? _containersBindingSource;
+        private BindingSource? _imagesBindingSource;
 
         public DockerClientConfiguration DockerClient { get; set; }
-        public DockerContainer? SelectedContainer { get => _selectedContainer; set => SetValue(ref _selectedContainer, value); }
+        public DockerContainer? SelectedContainer
+        {
+            get => _selectedContainer;
+            set
+            {
+                SetValue(ref _selectedContainer, value);
+                NotifyPropertyChanged(nameof(SelectedContainerName));
+            }
+        }
+        public string SelectedContainerName => SelectedContainer?.Name ?? "";
         public BindingList<DockerContainer> Containers => _containers;
         public BindingSource ContainersBindingSource
         {
@@ -32,6 +42,17 @@ namespace docker_quick_manager
                     _containersBindingSource = new BindingSource() { DataSource = _containers };
                 }
                 return _containersBindingSource;
+            }
+        }
+        public BindingSource ImagesBindingSource
+        {
+            get
+            {
+                if (_imagesBindingSource == null)
+                {
+                    _imagesBindingSource = new BindingSource() { DataSource = _images };
+                }
+                return _imagesBindingSource;
             }
         }
 
@@ -56,6 +77,7 @@ namespace docker_quick_manager
 
         public async Task<BindingList<DockerContainer>> GetContainersAsync()
         {
+            string previouslySelectedId = _selectedContainer?.Id;
             _containers.Clear(); // Clear previous containers
             using (var client = DockerClient.CreateClient())
             {
@@ -75,6 +97,7 @@ namespace docker_quick_manager
                     });
                 }
             }
+
             // Notify that the containers list has changed
             NotifyPropertyChanged(nameof(Containers));
             if (_containersBindingSource != null)
@@ -85,13 +108,27 @@ namespace docker_quick_manager
             return _containers;
         }
 
-        public async Task<List<ImagesListResponse>> GetImagesAsync()
+        public async Task<List<string>> GetImagesAsync()
         {
+            _images.Clear(); // Clear previous images
             using (var client = DockerClient.CreateClient())
             {
                 var images = await client.Images.ListImagesAsync(new ImagesListParameters());
-                return images.ToList();
+
+                foreach (var image in images)
+                {
+                    if (image.RepoTags != null && image.RepoTags.Count > 0)
+                    {
+                        _images.AddRange(image.RepoTags.Where(tag => !string.IsNullOrEmpty(tag)).ToList());
+                    }
+                }
             }
+            // Notify that the images list has changed
+            if (_imagesBindingSource != null)
+            {
+                _imagesBindingSource.ResetBindings(false);
+            }
+            return _images;
         }
         public async Task StartContainer(string containerId)
         {
@@ -100,14 +137,6 @@ namespace docker_quick_manager
                 await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
             }
             await GetContainersAsync();
-            // Reset the binding source to force UI update
-            if (_containersBindingSource != null)
-            {
-                _containersBindingSource.DataSource = null;
-                _containersBindingSource.DataSource = _containers;
-            }
-            // Notify that the containers list has changed
-            NotifyPropertyChanged(nameof(Containers));
         }
         public async Task StopContainer(DockerContainer container)
         {
@@ -123,14 +152,6 @@ namespace docker_quick_manager
                 await client.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
             }
             await GetContainersAsync();
-            // Reset the binding source to force UI update
-            if (_containersBindingSource != null)
-            {
-                _containersBindingSource.DataSource = null;
-                _containersBindingSource.DataSource = _containers;
-            }
-            // Notify that the containers list has changed
-            NotifyPropertyChanged(nameof(Containers));
         }
     }
 }
