@@ -45,14 +45,11 @@ namespace docker_quick_manager
         {
             if (_dockerManager.SelectedContainer != null)
             {
-                // Start the container
-                await _dockerManager.StartContainer(_dockerManager.SelectedContainer.Id);
-
                 // Open PowerShell console and run the docker command
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "powershell.exe",
-                    Arguments = $"-Command \"docker attach {_dockerManager.SelectedContainer.Id}\"",
+                    Arguments = $"docker start -ai {_dockerManager.SelectedContainerName}",
                     UseShellExecute = true
                 });
             }
