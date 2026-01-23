@@ -41,10 +41,24 @@ namespace docker_quick_manager
         }
         private async void StartButton_Click(object sender, EventArgs e)
         {
+            string containerId = string.Empty;
+
             if (_dockerManager.SelectedContainer != null)
+                containerId = _dockerManager.SelectedContainer.Id;
+
+            if (string.IsNullOrEmpty(containerId))
+                throw new InvalidOperationException("No container selected.");
+
+            // Start the container first
+            await _dockerManager.StartContainer(containerId);
+
+            // Open PowerShell console and run the docker command
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                await _dockerManager.StartContainer(_dockerManager.SelectedContainer.Id);
-            }
+                FileName = "powershell.exe",
+                Arguments = $"-Command \"docker attach {containerId}\"",
+                UseShellExecute = true
+            });
         }
 
         private void dataGridView2_SelectionChanged(object sender, EventArgs e)
