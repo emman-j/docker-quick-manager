@@ -52,6 +52,7 @@ namespace docker_quick_manager
                     Arguments = $"docker start -ai {_dockerManager.SelectedContainerName}",
                     UseShellExecute = true
                 });
+                _dockerManager.SelectedContainer.IsRunning = true;
             }
             else
             {
