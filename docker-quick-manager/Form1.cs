@@ -16,10 +16,12 @@ namespace docker_quick_manager
 
         private async void Setup_Form_Shown(object sender, EventArgs e)
         {
-            SelectedContainerTextbox.DataBindings.Add("Text", _dockerManager.SelectedContainer, nameof(DockerContainer.Name), true, DataSourceUpdateMode.OnPropertyChanged);
-            ARSelectedContainterTextBox.DataBindings.Add("Text", _dockerManager.SelectedContainer, nameof(DockerContainer.Name), true, DataSourceUpdateMode.OnPropertyChanged);
             await _dockerManager.GetContainersAsync();
             dataGridView1.DataSource = _dockerManager.ContainersBindingSource;
+            dataGridView2.DataSource = _dockerManager.ContainersBindingSource;
+
+            SelectedContainerTextbox.DataBindings.Add("Text", _dockerManager, nameof(DockerManager.SelectedContainerName), true, DataSourceUpdateMode.OnPropertyChanged);
+            ARSelectedContainterTextBox.DataBindings.Add("Text", _dockerManager, nameof(DockerManager.SelectedContainerName), true, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         private async void StopButton_Click(object sender, EventArgs e)
@@ -43,6 +45,19 @@ namespace docker_quick_manager
             {
                 await _dockerManager.StartContainer(_dockerManager.SelectedContainer.Id);
             }
+        }
+
+        private void dataGridView2_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dataGridView2.CurrentRow?.DataBoundItem is DockerContainer container)
+            {
+                _dockerManager.SelectedContainer = container;
+            }
+        }
+
+        private void CreateButtton_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
