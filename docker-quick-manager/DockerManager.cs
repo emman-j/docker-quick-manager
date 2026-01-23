@@ -21,7 +21,16 @@ namespace docker_quick_manager
         private BindingSource? _containersBindingSource;
 
         public DockerClientConfiguration DockerClient { get; set; }
-        public DockerContainer? SelectedContainer { get => _selectedContainer; set => SetValue(ref _selectedContainer, value); }
+        public DockerContainer? SelectedContainer
+        {
+            get => _selectedContainer;
+            set
+            {
+                SetValue(ref _selectedContainer, value);
+                NotifyPropertyChanged(nameof(SelectedContainerName));
+            }
+        }
+        public string SelectedContainerName => SelectedContainer?.Name ?? "";
         public BindingList<DockerContainer> Containers => _containers;
         public BindingSource ContainersBindingSource
         {
@@ -56,6 +65,7 @@ namespace docker_quick_manager
 
         public async Task<BindingList<DockerContainer>> GetContainersAsync()
         {
+            string previouslySelectedId = _selectedContainer?.Id;
             _containers.Clear(); // Clear previous containers
             using (var client = DockerClient.CreateClient())
             {
@@ -75,6 +85,7 @@ namespace docker_quick_manager
                     });
                 }
             }
+
             // Notify that the containers list has changed
             NotifyPropertyChanged(nameof(Containers));
             if (_containersBindingSource != null)
@@ -100,14 +111,6 @@ namespace docker_quick_manager
                 await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
             }
             await GetContainersAsync();
-            // Reset the binding source to force UI update
-            if (_containersBindingSource != null)
-            {
-                _containersBindingSource.DataSource = null;
-                _containersBindingSource.DataSource = _containers;
-            }
-            // Notify that the containers list has changed
-            NotifyPropertyChanged(nameof(Containers));
         }
         public async Task StopContainer(DockerContainer container)
         {
@@ -123,14 +126,6 @@ namespace docker_quick_manager
                 await client.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
             }
             await GetContainersAsync();
-            // Reset the binding source to force UI update
-            if (_containersBindingSource != null)
-            {
-                _containersBindingSource.DataSource = null;
-                _containersBindingSource.DataSource = _containers;
-            }
-            // Notify that the containers list has changed
-            NotifyPropertyChanged(nameof(Containers));
         }
     }
 }
