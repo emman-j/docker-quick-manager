@@ -98,11 +98,14 @@
             // 
             // dataGridView1
             // 
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Location = new Point(12, 51);
             dataGridView1.MultiSelect = false;
             dataGridView1.Name = "dataGridView1";
+            dataGridView1.ReadOnly = true;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.Size = new Size(389, 167);
             dataGridView1.TabIndex = 5;
@@ -169,6 +172,7 @@
             CreateButtton.TabIndex = 6;
             CreateButtton.Text = "Create";
             CreateButtton.UseVisualStyleBackColor = true;
+            CreateButtton.Click += CreateButtton_Click;
             // 
             // FolderSelectButton
             // 
@@ -261,11 +265,16 @@
             // 
             // dataGridView2
             // 
+            dataGridView2.AllowUserToDeleteRows = false;
+            dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView2.Location = new Point(12, 42);
+            dataGridView2.MultiSelect = false;
             dataGridView2.Name = "dataGridView2";
+            dataGridView2.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView2.Size = new Size(375, 100);
             dataGridView2.TabIndex = 10;
+            dataGridView2.SelectionChanged += dataGridView2_SelectionChanged;
             // 
             // RemoveButton
             // 
