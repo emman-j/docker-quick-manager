@@ -110,14 +110,23 @@ namespace docker_quick_manager
 
         public async Task<List<string>> GetImagesAsync()
         {
+            _images.Clear(); // Clear previous images
             using (var client = DockerClient.CreateClient())
             {
                 var images = await client.Images.ListImagesAsync(new ImagesListParameters());
 
                 foreach (var image in images)
                 {
-                    _images.AddRange(image.RepoTags.ToList());
+                    if (image.RepoTags != null && image.RepoTags.Count > 0)
+                    {
+                        _images.AddRange(image.RepoTags.Where(tag => !string.IsNullOrEmpty(tag)).ToList());
+                    }
                 }
+            }
+            // Notify that the images list has changed
+            if (_imagesBindingSource != null)
+            {
+                _imagesBindingSource.ResetBindings(false);
             }
             return _images;
         }
