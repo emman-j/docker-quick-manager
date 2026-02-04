@@ -108,6 +108,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if(!IsDockerRunning)
+                    return _containers;
+
                 string previouslySelectedId = _selectedContainer?.Id;
                 _containers.Clear(); // Clear previous containers
                 using (var client = DockerClient.CreateClient())
@@ -149,6 +152,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return new List<string>();
+
                 _images.Clear(); // Clear previous images
                 using (var client = DockerClient.CreateClient())
                 {
@@ -179,6 +185,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return;
+
                 using (var client = DockerClient.CreateClient())
                 {
                     await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
@@ -194,6 +203,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return;
+
                 if (container != null)
                 {
                     await StopContainer(container.Id);
@@ -208,6 +220,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return;
+
                 using (var client = DockerClient.CreateClient())
                 {
                     await client.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
@@ -224,6 +239,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return string.Empty;
+
                 using (var client = DockerClient.CreateClient())
                 {
                     var createParams = new CreateContainerParameters()
@@ -261,11 +279,14 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return;
+
                 // Remove the container using Docker API
                 using (var client = DockerClient.CreateClient())
                 {
                     await client.Containers.RemoveContainerAsync(container.Id,
-                        new Docker.DotNet.Models.ContainerRemoveParameters()
+                        new ContainerRemoveParameters()
                         {
                             Force = true // Force removal even if container is running
                         });
