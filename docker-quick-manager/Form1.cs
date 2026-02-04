@@ -98,15 +98,7 @@ namespace docker_quick_manager
 
             try
             {
-                // Run the docker command to create the container (without starting it interactively)
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = $"-Command \"docker create -v '{targetDir}:/app' -w /app --name '{containerName}' '{imageName}' sh\"",
-                    UseShellExecute = true
-                });
-
-                await _dockerManager.GetContainersAsync();
+                await _dockerManager.CreateContainer(imageName, containerName, targetDir);
             }
             catch (Exception ex)
             {
