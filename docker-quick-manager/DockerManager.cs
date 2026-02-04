@@ -237,5 +237,28 @@ namespace docker_quick_manager
                 await GetContainersAsync();
             }
         }
+        public async Task RemoveContainer(DockerContainer container)
+        {
+            try
+            {
+                // Remove the container using Docker API
+                using (var client = DockerClient.CreateClient())
+                {
+                    await client.Containers.RemoveContainerAsync(container.Id,
+                        new Docker.DotNet.Models.ContainerRemoveParameters()
+                        {
+                            Force = true // Force removal even if container is running
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error removing container: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                await GetContainersAsync();
+            }
+        }
     }
 }
