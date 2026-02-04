@@ -63,7 +63,14 @@ namespace docker_quick_manager
         public DockerManager(Uri uri = null)
         {
             _uri = uri ?? new Uri("npipe://./pipe/docker_engine");
-            DockerClient = new DockerClientConfiguration(_uri);
+            try
+            {
+                DockerClient = new DockerClientConfiguration(_uri);
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke(this, ex);
+            }
         }
 
         private void NotifyPropertyChanged([CallerMemberName]string propertyName = "")
@@ -79,81 +86,118 @@ namespace docker_quick_manager
 
         public async Task<BindingList<DockerContainer>> GetContainersAsync()
         {
-            string previouslySelectedId = _selectedContainer?.Id;
-            _containers.Clear(); // Clear previous containers
-            using (var client = DockerClient.CreateClient())
+            try
             {
-                var containers = await client.Containers.ListContainersAsync(
-                    new ContainersListParameters()
-                    {
-                        Limit = 10,
-                    });
-
-                foreach (var container in containers)
+                string previouslySelectedId = _selectedContainer?.Id;
+                _containers.Clear(); // Clear previous containers
+                using (var client = DockerClient.CreateClient())
                 {
-                    _containers.Add(new DockerContainer()
+                    var containers = await client.Containers.ListContainersAsync(
+                        new ContainersListParameters()
+                        {
+                            Limit = 10,
+                        });
+
+                    foreach (var container in containers)
                     {
-                        Id = container.ID,
-                        Names = container.Names.ToList(),
-                        IsRunning = container.State == "running"
-                    });
+                        _containers.Add(new DockerContainer()
+                        {
+                            Id = container.ID,
+                            Names = container.Names.ToList(),
+                            IsRunning = container.State == "running"
+                        });
+                    }
                 }
-            }
 
-            // Notify that the containers list has changed
-            NotifyPropertyChanged(nameof(Containers));
-            if (_containersBindingSource != null)
+                // Notify that the containers list has changed
+                NotifyPropertyChanged(nameof(Containers));
+                if (_containersBindingSource != null)
+                {
+                    _containersBindingSource.ResetBindings(false);
+                }
+
+                return _containers;
+            }
+            catch (Exception ex)
             {
-                _containersBindingSource.ResetBindings(false);
+                OnError?.Invoke(this, ex);
+                return _containers;
             }
-
-            return _containers;
         }
 
         public async Task<List<string>> GetImagesAsync()
         {
-            _images.Clear(); // Clear previous images
-            using (var client = DockerClient.CreateClient())
+            try
             {
-                var images = await client.Images.ListImagesAsync(new ImagesListParameters());
-
-                foreach (var image in images)
+                _images.Clear(); // Clear previous images
+                using (var client = DockerClient.CreateClient())
                 {
-                    if (image.RepoTags != null && image.RepoTags.Count > 0)
+                    var images = await client.Images.ListImagesAsync(new ImagesListParameters());
+
+                    foreach (var image in images)
                     {
-                        _images.AddRange(image.RepoTags.Where(tag => !string.IsNullOrEmpty(tag)).ToList());
+                        if (image.RepoTags != null && image.RepoTags.Count > 0)
+                        {
+                            _images.AddRange(image.RepoTags.Where(tag => !string.IsNullOrEmpty(tag)).ToList());
+                        }
                     }
                 }
+                // Notify that the images list has changed
+                if (_imagesBindingSource != null)
+                {
+                    _imagesBindingSource.ResetBindings(false);
+                }
+                return _images;
             }
-            // Notify that the images list has changed
-            if (_imagesBindingSource != null)
+            catch (Exception ex)
             {
-                _imagesBindingSource.ResetBindings(false);
+                OnError?.Invoke(this, ex);
+                return _images;
             }
-            return _images;
         }
         public async Task StartContainer(string containerId)
         {
-            using (var client = DockerClient.CreateClient())
+            try
             {
-                await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
+                using (var client = DockerClient.CreateClient())
+                {
+                    await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
+                }
+                await GetContainersAsync();
             }
-            await GetContainersAsync();
+            catch (Exception ex)
+            {
+                OnError?.Invoke(this, ex);
+            }
         }
         public async Task StopContainer(DockerContainer container)
         {
-            if (container != null)
+            try
             {
-                await StopContainer(container.Id);
+                if (container != null)
+                {
+                    await StopContainer(container.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke(this, ex);
             }
         }
         public async Task StopContainer(string containerId)
         {
-            using (var client = DockerClient.CreateClient())
+            try
             {
-                await client.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
+                using (var client = DockerClient.CreateClient())
+                {
+                    await client.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
+                }
+                await GetContainersAsync();
             }
-            await GetContainersAsync();
+            catch (Exception ex)
+            {
+                OnError?.Invoke(this, ex);
+            }
         }
     }
 }
