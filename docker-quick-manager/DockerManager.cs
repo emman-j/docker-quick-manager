@@ -22,6 +22,8 @@ namespace docker_quick_manager
         private BindingSource? _imagesBindingSource;
 
         public DockerClientConfiguration DockerClient { get; set; }
+        public event EventHandler<Exception> OnError;
+
         public DockerContainer? SelectedContainer
         {
             get => _selectedContainer;
