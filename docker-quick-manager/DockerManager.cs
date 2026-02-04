@@ -20,6 +20,7 @@ namespace docker_quick_manager
         private DockerContainer? _selectedContainer;
         private BindingSource? _containersBindingSource;
         private BindingSource? _imagesBindingSource;
+        private bool _isDockerRunning = false;
 
         public DockerClientConfiguration DockerClient { get; set; }
         public event EventHandler<Exception> OnError;
@@ -57,6 +58,7 @@ namespace docker_quick_manager
                 return _imagesBindingSource;
             }
         }
+        public bool IsDockerRunning { get => _isDockerRunning; set => SetValue(ref _isDockerRunning, value); }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -84,6 +86,24 @@ namespace docker_quick_manager
             }
         }
 
+        public async Task<bool> IsDockerEngineRunning()
+        {
+            IsDockerRunning = false;
+            try
+            {
+                using (var client = DockerClient.CreateClient())
+                {
+                    // Try to ping the Docker daemon
+                    var version = await client.System.GetVersionAsync();
+                    IsDockerRunning = version != null;
+                    return IsDockerRunning;
+                }
+            }
+            catch
+            {
+                return IsDockerRunning;
+            }
+        }
         public async Task<BindingList<DockerContainer>> GetContainersAsync()
         {
             try
