@@ -20,6 +20,7 @@ namespace docker_quick_manager
         private DockerContainer? _selectedContainer;
         private BindingSource? _containersBindingSource;
         private BindingSource? _imagesBindingSource;
+        private bool _isDockerRunning = false;
 
         public DockerClientConfiguration DockerClient { get; set; }
         public event EventHandler<Exception> OnError;
@@ -57,6 +58,7 @@ namespace docker_quick_manager
                 return _imagesBindingSource;
             }
         }
+        public bool IsDockerRunning { get => _isDockerRunning; set => SetValue(ref _isDockerRunning, value); }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -84,10 +86,31 @@ namespace docker_quick_manager
             }
         }
 
+        public async Task<bool> IsDockerEngineRunning()
+        {
+            IsDockerRunning = false;
+            try
+            {
+                using (var client = DockerClient.CreateClient())
+                {
+                    // Try to ping the Docker daemon
+                    var version = await client.System.GetVersionAsync();
+                    IsDockerRunning = version != null;
+                    return IsDockerRunning;
+                }
+            }
+            catch
+            {
+                return IsDockerRunning;
+            }
+        }
         public async Task<BindingList<DockerContainer>> GetContainersAsync()
         {
             try
             {
+                if(!IsDockerRunning)
+                    return _containers;
+
                 string previouslySelectedId = _selectedContainer?.Id;
                 _containers.Clear(); // Clear previous containers
                 using (var client = DockerClient.CreateClient())
@@ -129,6 +152,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return new List<string>();
+
                 _images.Clear(); // Clear previous images
                 using (var client = DockerClient.CreateClient())
                 {
@@ -159,6 +185,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return;
+
                 using (var client = DockerClient.CreateClient())
                 {
                     await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
@@ -174,6 +203,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return;
+
                 if (container != null)
                 {
                     await StopContainer(container.Id);
@@ -188,6 +220,9 @@ namespace docker_quick_manager
         {
             try
             {
+                if (!IsDockerRunning)
+                    return;
+
                 using (var client = DockerClient.CreateClient())
                 {
                     await client.Containers.StopContainerAsync(containerId, new ContainerStopParameters());
@@ -197,6 +232,73 @@ namespace docker_quick_manager
             catch (Exception ex)
             {
                 OnError?.Invoke(this, ex);
+            }
+        }
+
+        public async Task<string> CreateContainer(string imageName, string containerName, string targetDir)
+        {
+            try
+            {
+                if (!IsDockerRunning)
+                    return string.Empty;
+
+                using (var client = DockerClient.CreateClient())
+                {
+                    var createParams = new CreateContainerParameters()
+                    {
+                        Name = containerName,
+                        Image = imageName,
+                        WorkingDir = "/app",
+                        Cmd = new List<string> { "sh" },
+                        AttachStdin = true,
+                        AttachStdout = true,
+                        AttachStderr = true,
+                        Tty = true, // Allocate a pseudo-TTY
+                        OpenStdin = true, // Keep STDIN open even if not attached
+                        HostConfig = new HostConfig()
+                        {
+                            Binds = new List<string> { $"{targetDir}:/app:rw" } // Mount volume
+                        }
+                    };
+
+                    var response = await client.Containers.CreateContainerAsync(createParams);
+                    return response.ID; // Return the container ID
+                }
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke(this, ex);
+                throw; // Re-throw to let caller handle the error
+            }
+            finally
+            {
+                await GetContainersAsync();
+            }
+        }
+        public async Task RemoveContainer(DockerContainer container)
+        {
+            try
+            {
+                if (!IsDockerRunning)
+                    return;
+
+                // Remove the container using Docker API
+                using (var client = DockerClient.CreateClient())
+                {
+                    await client.Containers.RemoveContainerAsync(container.Id,
+                        new ContainerRemoveParameters()
+                        {
+                            Force = true // Force removal even if container is running
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error removing container: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                await GetContainersAsync();
             }
         }
     }

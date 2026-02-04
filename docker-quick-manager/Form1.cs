@@ -20,8 +20,11 @@ namespace docker_quick_manager
 
         private async void Setup_Form_Shown(object sender, EventArgs e)
         {
-            await _dockerManager.GetContainersAsync();
-            await _dockerManager.GetImagesAsync();
+            if (await _dockerManager.IsDockerEngineRunning())
+            {
+                await _dockerManager.GetContainersAsync();
+                await _dockerManager.GetImagesAsync();
+            }
             dataGridView1.DataSource = _dockerManager.ContainersBindingSource;
             dataGridView2.DataSource = _dockerManager.ContainersBindingSource;
             ImageComboBox.DataSource = _dockerManager.ImagesBindingSource;
@@ -56,6 +59,7 @@ namespace docker_quick_manager
                     Arguments = $"docker start -ai {_dockerManager.SelectedContainerName}",
                     UseShellExecute = true
                 });
+                _dockerManager.SelectedContainer.IsRunning = true;
             }
             else
             {
@@ -97,15 +101,7 @@ namespace docker_quick_manager
 
             try
             {
-                // Run the docker command to create the container (without starting it interactively)
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = $"-Command \"docker create -v '{targetDir}:/app' -w /app --name '{containerName}' '{imageName}' sh\"",
-                    UseShellExecute = true
-                });
-
-                await _dockerManager.GetContainersAsync();
+                await _dockerManager.CreateContainer(imageName, containerName, targetDir);
             }
             catch (Exception ex)
             {
@@ -131,30 +127,18 @@ namespace docker_quick_manager
         {
             if (_dockerManager.SelectedContainer != null)
             {
-                try
-                {
-                    // Remove the container using Docker API
-                    using (var client = _dockerManager.DockerClient.CreateClient())
-                    {
-                        await client.Containers.RemoveContainerAsync(_dockerManager.SelectedContainer.Id,
-                            new Docker.DotNet.Models.ContainerRemoveParameters()
-                            {
-                                Force = true // Force removal even if container is running
-                            });
-                    }
-
-                    // Refresh the container list after removal
-                    await _dockerManager.GetContainersAsync();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error removing container: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                await _dockerManager.RemoveContainer(_dockerManager.SelectedContainer);
             }
             else
             {
                 MessageBox.Show("Please select a container to remove.", "No Container Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private async void RefreshButton_Click(object sender, EventArgs e)
+        {
+            await _dockerManager.GetContainersAsync();
+            await _dockerManager.GetImagesAsync();
         }
     }
 }
