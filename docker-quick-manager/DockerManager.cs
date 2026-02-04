@@ -199,5 +199,43 @@ namespace docker_quick_manager
                 OnError?.Invoke(this, ex);
             }
         }
+
+        public async Task<string> CreateContainer(string imageName, string containerName, string targetDir)
+        {
+            try
+            {
+                using (var client = DockerClient.CreateClient())
+                {
+                    var createParams = new CreateContainerParameters()
+                    {
+                        Name = containerName,
+                        Image = imageName,
+                        WorkingDir = "/app",
+                        Cmd = new List<string> { "sh" },
+                        AttachStdin = true,
+                        AttachStdout = true,
+                        AttachStderr = true,
+                        Tty = true, // Allocate a pseudo-TTY
+                        OpenStdin = true, // Keep STDIN open even if not attached
+                        HostConfig = new HostConfig()
+                        {
+                            Binds = new List<string> { $"{targetDir}:/app:rw" } // Mount volume
+                        }
+                    };
+
+                    var response = await client.Containers.CreateContainerAsync(createParams);
+                    return response.ID; // Return the container ID
+                }
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke(this, ex);
+                throw; // Re-throw to let caller handle the error
+            }
+            finally
+            {
+                await GetContainersAsync();
+            }
+        }
     }
 }
