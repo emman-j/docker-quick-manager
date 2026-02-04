@@ -20,8 +20,11 @@ namespace docker_quick_manager
 
         private async void Setup_Form_Shown(object sender, EventArgs e)
         {
-            await _dockerManager.GetContainersAsync();
-            await _dockerManager.GetImagesAsync();
+            if (await _dockerManager.IsDockerEngineRunning())
+            {
+                await _dockerManager.GetContainersAsync();
+                await _dockerManager.GetImagesAsync();
+            }
             dataGridView1.DataSource = _dockerManager.ContainersBindingSource;
             dataGridView2.DataSource = _dockerManager.ContainersBindingSource;
             ImageComboBox.DataSource = _dockerManager.ImagesBindingSource;
