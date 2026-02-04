@@ -34,7 +34,6 @@
             StopButton = new Button();
             dataGridView1 = new DataGridView();
             groupBox1 = new GroupBox();
-            RefreshButton = new Button();
             groupBox2 = new GroupBox();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
@@ -114,7 +113,6 @@
             // 
             // groupBox1
             // 
-            groupBox1.Controls.Add(RefreshButton);
             groupBox1.Controls.Add(SelectedContainerTextbox);
             groupBox1.Controls.Add(StopButton);
             groupBox1.Controls.Add(dataGridView1);
@@ -347,6 +345,5 @@
         private TextBox NameTextBox;
         private Label label4;
         private Button CreateButtton;
-        private Button RefreshButton;
     }
 }
