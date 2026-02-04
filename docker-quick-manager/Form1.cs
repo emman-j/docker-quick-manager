@@ -11,6 +11,10 @@ namespace docker_quick_manager
             InitializeComponent();
 
             _dockerManager = new DockerManager(new Uri("npipe://./pipe/docker_engine"));
+            _dockerManager.OnError += (s, e) =>
+            {
+                MessageBox.Show($"Ensure docker engine is running.\n\nDocker Error: {e.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
 
         }
 
